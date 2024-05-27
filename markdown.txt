@@ -1,0 +1,91 @@
+--Find the Total number of electric vehicles by City and States.
+SELECT COUNT(IdentificationNo) AS Electric_Vehicles_Total, City, State
+FROM dbo.Electric_Vehicle$
+GROUP BY City, State
+ORDER BY Electric_Vehicles_Total DESC
+--Now, save it as a new table. Name: EV_by_state
+SELECT COUNT(IdentificationNo) AS Electric_Vehicles_Total, City, State
+INTO EV_by_state
+FROM dbo.Electric_Vehicle$
+GROUP BY City, State
+ORDER BY Electric_Vehicles_Total DESC;
+
+--If you want to check the percentages:
+WITH total AS (
+	SELECT SUM(Electric_Vehicles_Total) AS TotalVehicles
+	FROM dbo.EV_by_state
+)
+
+SELECT *, Electric_Vehicles_Total * 100 / (SELECT TotalVehicles FROM total) AS Percentage
+FROM dbo.EV_by_State
+ORDER BY 4 DESC
+
+--Or change the table
+ALTER TABLE dbo.EV_by_state
+ADD Percentage DECIMAL(5, 2);
+
+WITH total AS (
+    SELECT SUM(Electric_Vehicles_Total) AS TotalVehicles
+    FROM dbo.EV_by_state
+)
+UPDATE dbo.EV_by_state
+SET Percentage = (Electric_Vehicles_Total * 100.0) / (SELECT TotalVehicles FROM total);
+
+SELECT *, Electric_Vehicles_Total * 100.0 / (SELECT SUM(Electric_Vehicles_Total) FROM dbo.EV_by_state) AS CalculatedPercentage
+FROM dbo.EV_by_state
+ORDER BY Percentage DESC;
+
+
+--Find the Total number of electric vehicles by Type
+SELECT COUNT(IdentificationNo) AS Electric_Vehicles_Total, [Electric Vehicle Type]
+FROM dbo.Electric_Vehicle$
+GROUP BY [Electric Vehicle Type] 
+ORDER BY COUNT(IdentificationNo) DESC
+
+--Now, save it as a new table. Name: EV_by_type
+SELECT COUNT(IdentificationNo) AS Electric_Vehicles_Total, [Electric Vehicle Type]
+INTO EV_by_type
+FROM dbo.Electric_Vehicle$
+GROUP BY [Electric Vehicle Type]
+ORDER BY Electric_Vehicles_Total DESC;
+
+--Find the details: Total number of electric Vehicles by Year, Brand, Model, Type
+SELECT COUNT(IdentificationNo) AS Electric_Vehicles_Total, [Model Year], Make, Model, [Electric Vehicle Type]
+FROM dbo.Electric_Vehicle$
+GROUP BY [Model Year], Make, Model, [Electric Vehicle Type]
+ORDER BY Electric_Vehicles_Total DESC
+
+--Now, save it as a new table. Name: EV_details
+SELECT COUNT(IdentificationNo) AS Electric_Vehicles_Total, [Model Year], Make, Model, [Electric Vehicle Type]
+INTO EV_details
+FROM dbo.Electric_Vehicle$
+GROUP BY [Model Year], Make, Model, [Electric Vehicle Type]
+ORDER BY Electric_Vehicles_Total DESC;
+
+--Check the “Clean Alternative Fuel Vehicle (CAFV) Eligibility”. And compare it with each other.
+WITH TotalCount AS (
+    SELECT COUNT(IdentificationNo) AS Total
+    FROM dbo.Electric_Vehicle$
+)
+SELECT 
+    [Clean Alternative Fuel Vehicle (CAFV) Eligibility],
+    COUNT(IdentificationNo) AS Electric_Vehicles_Total,
+    (COUNT(IdentificationNo) * 100.0 / (SELECT Total FROM TotalCount)) AS Percentage
+FROM dbo.Electric_Vehicle$
+GROUP BY [Clean Alternative Fuel Vehicle (CAFV) Eligibility]
+ORDER BY Electric_Vehicles_Total DESC;
+
+--Now, save it as a new table. Name: EV_eligibility
+WITH TotalCount AS (
+    SELECT COUNT(IdentificationNo) AS Total
+    FROM dbo.Electric_Vehicle$
+)
+SELECT 
+    [Clean Alternative Fuel Vehicle (CAFV) Eligibility],
+    COUNT(IdentificationNo) AS Electric_Vehicles_Total,
+    (COUNT(IdentificationNo) * 100.0 / (SELECT Total FROM TotalCount)) AS Percentage
+INTO dbo.EV_eligibility
+FROM dbo.Electric_Vehicle$
+GROUP BY [Clean Alternative Fuel Vehicle (CAFV) Eligibility]
+ORDER BY Electric_Vehicles_Total DESC;
+
